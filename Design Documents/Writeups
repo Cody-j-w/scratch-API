@@ -1,0 +1,10 @@
+Writeups of the design:
+
+What is it you are going to build and how does it fit the theme?
+  We are going to build a cuisine API to access different recipes based upon the user's available ingreidients and requested country, if specified. This fits the theme of "Around the World" because our database allows the user to find cuisines unique to different countries around the globe.
+
+Which tools will you use?
+  We are tentatively using SQL for the database. We're also looking at ORMs to potentially use as an alternaitve to Sequelize. At the moment, we're leaning towards Objection.js.
+
+How long do you expect to spend on development of each part?
+  Our anticipated time frame is 1 week on the API and 1 week on collecting/creating/inputting data.
