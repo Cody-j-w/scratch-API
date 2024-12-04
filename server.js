@@ -22,3 +22,17 @@ app.get('/recipes/search', async (req, res) => {
       res.status(500).json({ error: 'Failed to fetch recipes.' });
   }
 });
+
+// 2. Fetch Recipe by ID
+app.get('/recipes/:id', async (req, res) => {
+  try {
+      const recipe = await Recipe.query().findById(req.params.id).withGraphFetched('ingredients');
+      if (recipe) {
+          res.json(recipe);
+      } else {
+          res.status(404).json({ error: 'Recipe not found.' });
+      }
+  } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch recipe.' });
+  }
+});
