@@ -13,7 +13,6 @@ const PORT = process.env.PORT || 5000;
 app.use(express.json());
 
 const routes = require('./server');
-const { knex } = require('./models/Ingredient');
 app.use('/', routes);
 
 app.listen(PORT, () => {
