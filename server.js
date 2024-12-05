@@ -26,6 +26,7 @@ app.get('/recipes/search', async (req, res) => {
 
       res.json({ recipes });
   } catch (error) {
+      console.log(error);
       res.status(500).json({ error: 'Failed to fetch recipes.' });
   }
 });
@@ -58,9 +59,14 @@ app.get('/regions', async (req, res) => {
 app.get('/recipes/region/:region', async (req, res) => {
   try {
       const region = await Region.query().where('name', req.params.region);
-      const recipes = await Recipe.query().where('regionId', region.id);
+      const recipes = await Region.relatedQuery('recipes')
+      .for(region)
+      .where('regionId', region.id);
+
       res.json({ recipes });
   } catch (error) {
+      console.log(error);
+
       res.status(500).json({ error: 'Failed to fetch recipes.' });
   }
 });
