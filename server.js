@@ -14,7 +14,7 @@ app.get('/recipes/search', async (req, res) => {
       let query = Recipe.query().withGraphFetched('ingredients');
 
       if (region) {
-          const regionQuery = Region.query().where('region', region);
+          const regionQuery = await Region.query().where('name', region);
           query = query.where('regionId', regionQuery.id);
       }
 
