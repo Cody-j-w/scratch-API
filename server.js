@@ -1,14 +1,21 @@
+const express = require('express');
+const Region = require('./models/Region');
+const Recipe = require('./models/Recipe');
+const Ingredient = require('./models/Ingredient');
+const app = express.Router();
+
 // Routes
 
 // Search Recipes by Ingredients
 app.get('/recipes/search', async (req, res) => {
-  const { ingredients, country } = req.query;
+  const { ingredients, region } = req.query;
   try {
       const ingredientList = ingredients.split(',').map((item) => item.trim());
       let query = Recipe.query().withGraphFetched('ingredients');
 
-      if (country) {
-          query = query.where('country', country);
+      if (region) {
+          const regionQuery = Region.query().where('region', region);
+          query = query.where('regionId', regionQuery.id);
       }
 
       const recipes = await query
@@ -38,21 +45,24 @@ app.get('/recipes/:id', async (req, res) => {
 });
 
 // List All Countries
-app.get('/countries', async (req, res) => {
+app.get('/regions', async (req, res) => {
   try {
-      const countries = await Country.query().select('name');
-      res.json({ countries });
+      const regions = await Region.query().select('name');
+      res.json({ regions });
   } catch (error) {
-      res.status(500).json({ error: 'Failed to fetch countries.' });
+      res.status(500).json({ error: 'Failed to fetch regions.' });
   }
 });
 
-// Fetch Recipes by Country
-app.get('/recipes/country/:country', async (req, res) => {
+// Fetch Recipes by Region
+app.get('/recipes/region/:region', async (req, res) => {
   try {
-      const recipes = await Recipe.query().where('country', req.params.country);
+      const region = await Region.query().where('name', req.params.region);
+      const recipes = await Recipe.query().where('regionId', region.id);
       res.json({ recipes });
   } catch (error) {
       res.status(500).json({ error: 'Failed to fetch recipes.' });
   }
 });
+
+module.exports = app;
