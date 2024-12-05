@@ -18,6 +18,7 @@ exports.up = function(knex) {
     .onDelete('SET NULL')
     .index()
     table.string('name')
+    table.string('directions')
   })
   .createTable('ingredients', (table) => {
     table.increments('id').primary()
