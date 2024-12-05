@@ -1,6 +1,6 @@
 // Routes
 
-// 1. Search Recipes by Ingredients
+// Search Recipes by Ingredients
 app.get('/recipes/search', async (req, res) => {
   const { ingredients, country } = req.query;
   try {
@@ -23,7 +23,7 @@ app.get('/recipes/search', async (req, res) => {
   }
 });
 
-// 2. Fetch Recipe by ID
+// Fetch Recipe by ID
 app.get('/recipes/:id', async (req, res) => {
   try {
       const recipe = await Recipe.query().findById(req.params.id).withGraphFetched('ingredients');
@@ -34,5 +34,25 @@ app.get('/recipes/:id', async (req, res) => {
       }
   } catch (error) {
       res.status(500).json({ error: 'Failed to fetch recipe.' });
+  }
+});
+
+// List All Countries
+app.get('/countries', async (req, res) => {
+  try {
+      const countries = await Country.query().select('name');
+      res.json({ countries });
+  } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch countries.' });
+  }
+});
+
+// Fetch Recipes by Country
+app.get('/recipes/country/:country', async (req, res) => {
+  try {
+      const recipes = await Recipe.query().where('country', req.params.country);
+      res.json({ recipes });
+  } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch recipes.' });
   }
 });
