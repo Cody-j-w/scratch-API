@@ -11,20 +11,21 @@ app.get('/recipes/search', async (req, res) => {
   const { ingredients, region } = req.query;
   try {
       const ingredientList = ingredients.split(',').map((item) => item.trim());
-      let query = Recipe.query().withGraphFetched('ingredients');
-
+      let query;
       if (region) {
-          const regionQuery = await Region.query().where('name', region);
-          query = query.where('regionId', regionQuery.id);
-      }
-
-      const recipes = await query
+        let regionQuery = await Region.query().where('name', region);
+        query = await regionQuery[0].$relatedQuery('recipes').withGraphFetched('ingredients')
+        .whereExists(Recipe.relatedQuery('ingredients').whereIn('name', ingredientList));
+        res.json({ query })
+      } else {
+        query = Recipe.query().withGraphFetched('ingredients');
+        const recipes = await query
           .whereExists(
               Recipe.relatedQuery('ingredients')
                   .whereIn('name', ingredientList)
           );
-
-      res.json({ recipes });
+          res.json({ recipes });
+      }
   } catch (error) {
       console.log(error);
       res.status(500).json({ error: 'Failed to fetch recipes.' });
@@ -58,10 +59,8 @@ app.get('/regions', async (req, res) => {
 // Fetch Recipes by Region
 app.get('/recipes/region/:region', async (req, res) => {
   try {
-      const region = await Region.query().where('name', req.params.region);
-      const recipes = await Region.relatedQuery('recipes')
-      .for(region)
-      .where('regionId', region.id);
+    let regionQuery = await Region.query().where('name', req.params.region);
+    let recipes = await regionQuery[0].$relatedQuery('recipes').withGraphFetched('ingredients')
 
       res.json({ recipes });
   } catch (error) {
