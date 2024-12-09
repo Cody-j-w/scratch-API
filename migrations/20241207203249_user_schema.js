@@ -4,44 +4,6 @@
  */
 exports.up = function(knex) {
   return knex.schema
-  .createTable('regions', (table) => {
-    table.increments('id').primary()
-    table.string('name')
-  })
-  .createTable('recipes', (table) => {
-    table.increments('id').primary()
-    table
-    .integer('regionId')
-    .unsigned()
-    .references('id')
-    .inTable('regions')
-    .onDelete('SET NULL')
-    .index()
-    table.string('name')
-    table.string('directions')
-  })
-  .createTable('ingredients', (table) => {
-    table.increments('id').primary()
-    table.string('name')
-  })
-  .createTable('recipes_ingredients', (table) => {
-    table.increments('id').primary()
-    table
-    .integer('recipeId')
-    .unsigned()
-    .references('id')
-    .inTable('recipes')
-    .onDelete('CASCADE')
-    .index()
-
-    table
-    .integer('ingredientId')
-    .unsigned()
-    .references('id')
-    .inTable('ingredients')
-    .onDelete('CASCADE')
-    .index()
-  })
   .createTable('users', (table) => {
     table.increments('id').primary()
     table.string('username')
