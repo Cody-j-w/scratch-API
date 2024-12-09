@@ -1,24 +1,33 @@
+const express = require('express');
+const Region = require('./models/Region');
+const Recipe = require('./models/Recipe');
+const Ingredient = require('./models/Ingredient');
+const app = express.Router();
+
 // Routes
 
 // Search Recipes by Ingredients
 app.get('/recipes/search', async (req, res) => {
-  const { ingredients, country } = req.query;
+  const { ingredients, region } = req.query;
   try {
       const ingredientList = ingredients.split(',').map((item) => item.trim());
-      let query = Recipe.query().withGraphFetched('ingredients');
-
-      if (country) {
-          query = query.where('country', country);
-      }
-
-      const recipes = await query
+      let query;
+      if (region) {
+        let regionQuery = await Region.query().where('name', region);
+        query = await regionQuery[0].$relatedQuery('recipes').withGraphFetched('ingredients')
+        .whereExists(Recipe.relatedQuery('ingredients').whereIn('name', ingredientList));
+        res.json({ query })
+      } else {
+        query = Recipe.query().withGraphFetched('ingredients');
+        const recipes = await query
           .whereExists(
               Recipe.relatedQuery('ingredients')
                   .whereIn('name', ingredientList)
           );
-
-      res.json({ recipes });
+          res.json({ recipes });
+      }
   } catch (error) {
+      console.log(error);
       res.status(500).json({ error: 'Failed to fetch recipes.' });
   }
 });
@@ -38,21 +47,27 @@ app.get('/recipes/:id', async (req, res) => {
 });
 
 // List All Countries
-app.get('/countries', async (req, res) => {
+app.get('/regions', async (req, res) => {
   try {
-      const countries = await Country.query().select('name');
-      res.json({ countries });
+      const regions = await Region.query().select('name');
+      res.json({ regions });
   } catch (error) {
-      res.status(500).json({ error: 'Failed to fetch countries.' });
+      res.status(500).json({ error: 'Failed to fetch regions.' });
   }
 });
 
-// Fetch Recipes by Country
-app.get('/recipes/country/:country', async (req, res) => {
+// Fetch Recipes by Region
+app.get('/recipes/region/:region', async (req, res) => {
   try {
-      const recipes = await Recipe.query().where('country', req.params.country);
+    let regionQuery = await Region.query().where('name', req.params.region);
+    let recipes = await regionQuery[0].$relatedQuery('recipes').withGraphFetched('ingredients')
+
       res.json({ recipes });
   } catch (error) {
+      console.log(error);
+
       res.status(500).json({ error: 'Failed to fetch recipes.' });
   }
 });
+
+module.exports = app;
