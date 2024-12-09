@@ -2,6 +2,9 @@ const express = require('express');
 const Region = require('./models/Region');
 const Recipe = require('./models/Recipe');
 const Ingredient = require('./models/Ingredient');
+const User = require('./models/User');
+const crypto = require('crypto');
+const bcrypt = require('bcrypt');
 const app = express.Router();
 
 // Routes
@@ -70,4 +73,45 @@ app.get('/recipes/region/:region', async (req, res) => {
   }
 });
 
+app.post('/signup', async (req, res) => {
+    const username = req.body.username;
+    const password = req.body.password;
+    if (!username || !password) {
+        res.status(400).json({error: 'Please provide both a username and a password'});
+    }
+    console.log(username + ' ' + password);
+    const testQuery = await User.query().select('username').where('username', username);
+    if (testQuery.length > 0) {
+        res.status(400).json({error: 'user already exists'});
+    } else {
+        const newAuth = crypto.randomUUID();
+        bcrypt.genSalt(10, async (err, salt) => {
+            bcrypt.hash(password, salt, async (err, hash) => {
+                const newUser = await User.query().insert({
+                    username: username,
+                    password: hash,
+                    auth: newAuth
+                });
+                res.status(200).json({success: `welcome ${newUser.username}!`});
+            });
+        })
+    }
+});
+
+app.post('/login', async(req, res) => {
+    const username = req.body.username;
+    const password = req.body.password;
+    if (!username || !password) {
+        res.status(400).json({error: 'Please provide both a username and a password'});
+    }
+    const userCheck = await User.query().where('username', username);
+    bcrypt.compare(password, userCheck.password, (err, result) => {
+        if (result) {
+            req.session.auth = userCheck.auth;
+            res.status(200).json({success: `you are now logged in, ${userCheck.username}`})
+        } else {
+            res.status(400).json({error: 'invalid login information'});
+        }
+    })
+})
 module.exports = app;
