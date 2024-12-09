@@ -4,6 +4,10 @@ const Recipe = require('./models/Recipe');
 const Ingredient = require('./models/Ingredient');
 const app = express.Router();
 
+app.get('/', (req, res) => {
+  res.send('Welcome to the API! Visit /api-docs for Swagger documentation.');
+});
+
 /**
  * @swagger
  * /recipes/search:
