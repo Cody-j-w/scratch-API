@@ -11,6 +11,7 @@ Model.knex(knex);
 const PORT = process.env.PORT || 5000;
 
 app.use(express.json());
+app.use(express.urlencoded());
 
 const routes = require('./server');
 app.use('/', routes);
