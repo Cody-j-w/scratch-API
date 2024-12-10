@@ -2,6 +2,9 @@ const express = require('express');
 const Region = require('./models/Region');
 const Recipe = require('./models/Recipe');
 const Ingredient = require('./models/Ingredient');
+const User = require('./models/User');
+const crypto = require('crypto');
+const bcrypt = require('bcrypt');
 const app = express.Router();
 
 app.get('/', (req, res) => {
@@ -163,6 +166,71 @@ app.get('/recipes/region/:region', async (req, res) => {
     console.log(error);
     res.status(500).json({ error: 'Failed to fetch recipes.' });
   }
+});
+
+app.post('/signup', async (req, res) => {
+    const username = req.body.username;
+    const password = req.body.password;
+    if (!username || !password) {
+        res.status(400).json({error: 'Please provide both a username and a password'});
+    }
+    console.log(username + ' ' + password);
+    const testQuery = await User.query().select('username').where('username', username);
+    if (testQuery.length > 0) {
+        res.status(400).json({error: 'user already exists'});
+    } else {
+        const newAuth = crypto.randomUUID();
+        bcrypt.genSalt(10, async (err, salt) => {
+            bcrypt.hash(password, salt, async (err, hash) => {
+                const newUser = await User.query().insert({
+                    username: username,
+                    password: hash,
+                    auth: newAuth
+                });
+                req.session.auth = newUser.auth;
+                res.status(200).json({success: `welcome ${newUser.username}!`});
+            });
+        })
+    }
+});
+
+app.post('/login', async (req, res) => {
+    const username = req.body.username;
+    const password = req.body.password;
+    if (!username || !password) {
+        res.status(400).json({error: 'Please provide both a username and a password'});
+    }
+    const userCheck = await User.query().where('username', username);
+    bcrypt.compare(password, userCheck[0].password, (err, result) => {
+        if (err) {
+            console.log(err);
+        }
+        if (result) {
+            req.session.auth = userCheck[0].auth;
+            res.status(200).json({success: `you are now logged in, ${userCheck[0].username}`})
+        } else {
+            res.status(400).json({error: 'invalid login information'});
+        }
+    })
+});
+
+app.put('/favorite', async (req, res) => {
+    if (!req.session.auth) {
+        res.status(400).json({error: 'please log in to favorite a recipe'});
+    }
+    const user = await User.query().where('auth', req.session.auth).withGraphFetched('recipes');
+    const recipe = await Recipe.query().findById(req.body.recipeId);
+    await user[0].$relatedQuery('recipes').relate(recipe);
+    res.json(user[0]);
+});
+
+app.get('/favorites', async (req, res) => {
+    if (!req.session.auth) {
+        res.status(400).json({error: 'please log in to view your favorites'});
+    }
+    const user = await User.query().where('auth', req.session.auth);
+    const recipes = await user[0].$relatedQuery('recipes').withGraphFetched('ingredients');
+    res.json(recipes);
 });
 
 module.exports = app;

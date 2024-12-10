@@ -8,6 +8,7 @@ class Recipe extends Model {
     static get relationMappings() {
         const Ingredient = require('./Ingredient');
         const Region = require('./Region');
+        const User = require('./User')
 
         return {
             ingredients: {
@@ -20,6 +21,19 @@ class Recipe extends Model {
                         to: 'recipes_ingredients.ingredientId'
                     },
                     to: 'ingredients.id'
+                }
+            },
+
+            users: {
+                relation: Model.ManyToManyRelation,
+                modelClass: User,
+                join: {
+                    from: 'recipes.id',
+                    through: {
+                        from: 'users_recipes.recipeId',
+                        to: 'users_recipes.userId'
+                    },
+                    to: 'users.id'
                 }
             },
 
