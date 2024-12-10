@@ -168,6 +168,31 @@ app.get('/recipes/region/:region', async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /signup:
+ *   post:
+ *     summary: User signup
+ *     description: Create a new user with a username and password.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 description: The username for the new user.
+ *               password:
+ *                 type: string
+ *                 description: The password for the new user.
+ *     responses:
+ *       200:
+ *         description: Signup successful.
+ *       400:
+ *         description: User already exists or invalid input.
+ */
 app.post('/signup', async (req, res) => {
     const username = req.body.username;
     const password = req.body.password;
@@ -194,6 +219,31 @@ app.post('/signup', async (req, res) => {
     }
 });
 
+/**
+ * @swagger
+ * /login:
+ *   post:
+ *     summary: User login
+ *     description: Log in a user with a username and password.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 description: The username of the user.
+ *               password:
+ *                 type: string
+ *                 description: The password of the user.
+ *     responses:
+ *       200:
+ *         description: Login successful.
+ *       400:
+ *         description: Invalid login information or input.
+ */
 app.post('/login', async (req, res) => {
     const username = req.body.username;
     const password = req.body.password;
@@ -214,6 +264,28 @@ app.post('/login', async (req, res) => {
     })
 });
 
+/**
+ * @swagger
+ * /favorite:
+ *   put:
+ *     summary: Favorite a recipe
+ *     description: Add a recipe to the user's list of favorites.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               recipeId:
+ *                 type: integer
+ *                 description: The ID of the recipe to favorite.
+ *     responses:
+ *       200:
+ *         description: Recipe favorited successfully.
+ *       400:
+ *         description: User not logged in or invalid input.
+ */
 app.put('/favorite', async (req, res) => {
     if (!req.session.auth) {
         res.status(400).json({error: 'please log in to favorite a recipe'});
@@ -224,6 +296,24 @@ app.put('/favorite', async (req, res) => {
     res.json(user[0]);
 });
 
+/**
+ * @swagger
+ * /favorites:
+ *   get:
+ *     summary: Get user favorites
+ *     description: Retrieve the list of recipes favorited by the logged-in user.
+ *     responses:
+ *       200:
+ *         description: A list of favorite recipes.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Recipe'
+ *       400:
+ *         description: User not logged in.
+ */
 app.get('/favorites', async (req, res) => {
     if (!req.session.auth) {
         res.status(400).json({error: 'please log in to view your favorites'});
