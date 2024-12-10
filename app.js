@@ -15,7 +15,9 @@ app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 app.use(session({
     secret: process.env.SESSION_KEY,
-    maxAge: null
+    maxAge: null,
+    resave: false,
+    saveUninitialized: false
 }))
 
 const routes = require('./server');

@@ -92,26 +92,50 @@ app.post('/signup', async (req, res) => {
                     password: hash,
                     auth: newAuth
                 });
+                req.session.auth = newUser.auth;
                 res.status(200).json({success: `welcome ${newUser.username}!`});
             });
         })
     }
 });
 
-app.post('/login', async(req, res) => {
+app.post('/login', async (req, res) => {
     const username = req.body.username;
     const password = req.body.password;
     if (!username || !password) {
         res.status(400).json({error: 'Please provide both a username and a password'});
     }
     const userCheck = await User.query().where('username', username);
-    bcrypt.compare(password, userCheck.password, (err, result) => {
+    bcrypt.compare(password, userCheck[0].password, (err, result) => {
+        if (err) {
+            console.log(err);
+        }
         if (result) {
-            req.session.auth = userCheck.auth;
-            res.status(200).json({success: `you are now logged in, ${userCheck.username}`})
+            req.session.auth = userCheck[0].auth;
+            res.status(200).json({success: `you are now logged in, ${userCheck[0].username}`})
         } else {
             res.status(400).json({error: 'invalid login information'});
         }
     })
-})
+});
+
+app.put('/favorite', async (req, res) => {
+    if (!req.session.auth) {
+        res.status(400).json({error: 'please log in to favorite a recipe'});
+    }
+    const user = await User.query().where('auth', req.session.auth).withGraphFetched('recipes');
+    const recipe = await Recipe.query().findById(req.body.recipeId);
+    await user[0].$relatedQuery('recipes').relate(recipe);
+    res.json(user[0]);
+});
+
+app.get('/favorites', async (req, res) => {
+    if (!req.session.auth) {
+        res.status(400).json({error: 'please log in to view your favorites'});
+    }
+    const user = await User.query().where('auth', req.session.auth);
+    const recipes = await user[0].$relatedQuery('recipes').withGraphFetched('ingredients');
+    res.json(recipes);
+});
+
 module.exports = app;
