@@ -77,7 +77,6 @@ app.get('/', (req, res) => {
  *                     $ref: '#/components/schemas/Recipe'
  */
 app.get('/recipes/search', async (req, res) => {
-    // TODO: add ability to make ingredients list inclusive or exclusive
   const { ingredients, region } = req.query;
   try {
     const ingredientList = ingredients.split(',').map((item) => item.trim());
