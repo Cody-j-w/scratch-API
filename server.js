@@ -57,6 +57,12 @@ app.get('/', (req, res) => {
  *           type: string
  *         required: false
  *         description: Filter recipes by region.
+ *       - in: query
+ *         name: exclusive
+ *         schema:
+ *           type: boolean
+ *         required: false
+ *         description: Set whether or not you want recipes that only include ingredients included in the ingredients parameter
  *     responses:
  *       200:
  *         description: A list of recipes.
@@ -76,20 +82,57 @@ app.get('/recipes/search', async (req, res) => {
   try {
     const ingredientList = ingredients.split(',').map((item) => item.trim());
     logger.log('info', `Endpoint '/recipes/search' hit with following query params: ingredients: ${ingredientList}, region: ${region}`);
-    let query;
     if (region) {
       let regionQuery = await Region.query().where('name', region);
-      query = await regionQuery[0].$relatedQuery('recipes').withGraphFetched('ingredients')
+      const recipes = await regionQuery[0].$relatedQuery('recipes').withGraphFetched('ingredients')
         .whereExists(Recipe.relatedQuery('ingredients').whereIn('name', ingredientList));
-      logger.log('info', `query successful - '/recipes/search with region`)
-      res.json({ query });
+      let recipeList = [];
+      if (Boolean(req.query.exclusive) === true) {
+        for (const doc of recipes) {
+            console.log(doc)
+            let ingredientFlag = 0;
+            for (const ingredient of doc.ingredients) {
+                if (!(ingredientList.includes(ingredient.name))) {
+                    console.log(`Missing ingredient! ${ingredient.name}`)
+                    ingredientFlag = 1;
+                }
+            }
+            if (ingredientFlag == 0) {
+                recipeList.push(doc);
+            }
+        }
+        logger.log('info', `query successful - '/recipes/search with region, ingredient list exclusive`)
+        res.json({ recipeList });
+      } else {
+        logger.log('info', `query successful - '/recipes/search with region, igredient list not exclusive`)
+        res.json({ recipes });
+      }
     } else {
       query = Recipe.query().withGraphFetched('ingredients');
       const recipes = await query.whereExists(
         Recipe.relatedQuery('ingredients').whereIn('name', ingredientList)
       );
-      logger.log('info', `query successful - '/recipes/search without region`)
-      res.json({ recipes });
+      let recipeList = [];
+      if (req.query.exclusive === 'true') {
+        for (const doc of recipes) {
+            console.log(doc)
+            let ingredientFlag = 0;
+            for (const ingredient of doc.ingredients) {
+                if (!(ingredientList.includes(ingredient.name))) {
+                    console.log(`Missing ingredient! ${ingredient.name}`)
+                    ingredientFlag = 1;
+                }
+            }
+            if (ingredientFlag == 0) {
+                recipeList.push(doc);
+            }
+        }
+        logger.log('info', `query successful - '/recipes/search without region, ingredient list exclusive`)
+        res.json({ recipeList });
+      } else {
+        logger.log('info', `query successful - '/recipes/search without region, ingredient list not exclusive`)
+        res.json({ recipes });
+      }
     }
   } catch (error) {
     logger.log('error', `Request of endpoint '/recipes/search' failed with following error: ${error} using the following query params: ingredients: ${req.query.ingredients}, region: ${req.query.region}`)
