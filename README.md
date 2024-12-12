@@ -7,7 +7,7 @@ The **Around the World Cuisine API** allows users to:
 - Favorite recipes and retrieve a list of user favorites.
 - Explore various regions and their associated recipes.
 
-This API is built with **Node.js**, **Express**, **Objection.js**, and **Knex**, and includes Swagger documentation for easy interaction and testing.
+This API is built with **Node.js**, **Express**, **Objection.js**, and **Knex**, and **MySQL** includes Swagger documentation for easy interaction and testing.
 
 ---
 
@@ -34,7 +34,7 @@ This API is built with **Node.js**, **Express**, **Objection.js**, and **Knex**,
 - [Node.js](https://nodejs.org/) (version 14 or higher)
 - [Git](https://git-scm.com/)
 - [Knex CLI](https://knexjs.org/)
-- [PostgreSQL](https://www.postgresql.org/)
+- [MySQL](https://www.mysql.com/)
 
 ### Installation
 1. Clone the repository:
@@ -47,7 +47,7 @@ This API is built with **Node.js**, **Express**, **Objection.js**, and **Knex**,
    npm install
    ```
 3. Configure the database:
-   - Create a PostgreSQL database.
+   - Create a MySQL database.
    - Update the `knexfile.js` with your database credentials.
 
 4. Run migrations to set up the database schema:
@@ -92,7 +92,7 @@ This API is built with **Node.js**, **Express**, **Objection.js**, and **Knex**,
 - **Objection.js**: ORM for managing database models and relations.
 - **Knex.js**: SQL query builder for migrations and database interaction.
 - **Swagger**: Auto-generated API documentation.
-- **PostgreSQL**: Relational database.
+- **MySQL**: Relational database.
 
 ## Authors
 - [Starlee Jiles](https://github.com/starles-barkley)
